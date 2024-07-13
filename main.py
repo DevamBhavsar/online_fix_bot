@@ -10,8 +10,12 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException,
 site_login_username = "YOUR_USERNAME"
 site_login_pwd = "YOUR_PASSWORD"
 
+
+
 options = Options()
 driver_path = 'YOUR_PATH_TO_CHROME_DRIVER'
+options.add_argument("--headless")
+
 service = Service(executable_path=driver_path)
 
 driver = webdriver.Chrome(service=service, options=options)
@@ -20,22 +24,61 @@ driver = webdriver.Chrome(service=service, options=options)
 driver.get("https://online-fix.me/games/")
 
 try:
+    # Wait for the login form to be visible
     login_form = WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.XPATH, "/html/body/header/div[2]/div/div[2]"))
+        EC.visibility_of_element_located((By.ID, "login-form"))
     )
+    
+    # Fill in the username
     login_username = driver.find_element(By.NAME, "login_name")
     login_username.send_keys(site_login_username)
+    
+    # Fill in the password
     login_pwd = driver.find_element(By.NAME, "login_password")
     login_pwd.send_keys(site_login_pwd)
-    login_button = driver.find_element(By.XPATH, "/html/body/header/div[2]/div/div[2]/form/div[1]/button[1]")
-    login_button.click()
-    print("Successfully logged in.")
-    WebDriverWait(driver, 10).until(
-        EC.invisibility_of_element(login_button)
-    )
-    driver.refresh()
+    driver.execute_script("document.getElementById('login-form').submit()")
+    
+    # Click the login button
+    timeout = 10
+    WebDriverWait(driver, timeout).until(EC.invisibility_of_element_located((By.ID, 'login-form')))
+
+    # Check if the login form is absent
+    if not driver.find_elements(By.ID, 'login-form'):
+        print("Login successful")
+    else:
+        print("Login failed")
+
+    # login_button = driver.find_element(By.XPATH, "//button[@onclick='dologin(); return false']")
+    # login_button.click()
+    
+    
+    # Wait for the login button to disappear, indicating successful login
+    # WebDriverWait(driver, 10).until(
+        # EC.invisibility_of_element_located((By.XPATH, "//button[contains(@class, 'btn-success') and contains(., 'Entrance')]"))
+    # )
+    
+    # print("Successfully logged in.")
+    # page_source = driver.page_source
+    
+    # # Parse the page source with BeautifulSoup
+    # soup = BeautifulSoup(page_source, 'html.parser')
+    
+    # # Find the div with class "top-panel clr"
+    # top_panel = soup.find('div', class_='top-panel clr')
+    
+    # if top_panel:
+    #     print("Contents of div with class 'top-panel clr':")
+    #     print(top_panel.prettify())
+    # else:
+    #     print("Div with class 'top-panel clr' not found.")
+    # driver.refresh()
+    
 except TimeoutException:
-    print("Already logged in or login not required.")
+    print("Timeout waiting for login form or already logged in.")
+except Exception as e:
+    print(f"Exception occurred during login: {str(e)}")
+    
+
 
 # Wait for the search bar to be clickable
 game_name = input("Enter Game name: ")
@@ -60,10 +103,13 @@ except TimeoutException:
     # No error box found, proceed to click on the first game link
     try:
         first_game_link = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "/html/body/div[3]/div[1]/div/div[2]/div[3]/div/a"))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a.big-link"))
         )
-        driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});", first_game_link)
-        first_game_link.click()
+        href_url = first_game_link.get_attribute('href')
+        driver.get(href_url)
+        print(f"Navigated to: {href_url}")
+        # driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});", first_game_link)
+        # first_game_link.click()
         print("Clicked on the first game link.")
     except TimeoutException:
         print("Timeout waiting for first game link to be clickable.")
@@ -86,19 +132,18 @@ except NoSuchElementException:
 except Exception as e:
     print(f"Exception occurred: {str(e)}")
 
-# Click on the button
+# Find and click the "Download Torrent" button
 try:
-    button_element = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, '/html/body/div[3]/div[1]/div/div[2]/div/article/div[2]/div[3]/div[2]/div/a[4]'))
+    download_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//a[contains(@class, 'btn-success') and contains(., 'Download Torrent')]"))
     )
-    button_element.click()
-    print("Button clicked successfully.")
+    download_url = download_button.get_attribute('href')
+    driver.get(download_url)
+    print(f"Navigated to download URL: {download_url}")
 except TimeoutException:
-    print("Timeout waiting for the button to be clickable.")
-except ElementClickInterceptedException as e:
-    print(f"Element click intercepted: {str(e)}")
+    print("Timeout waiting for the Download Torrent button to be clickable.")
 except Exception as e:
-    print(f"Exception occurred: {str(e)}")
+    print(f"Exception occurred while trying to access download URL: {str(e)}")
 
 # Now find and print the torrent link
 try:
