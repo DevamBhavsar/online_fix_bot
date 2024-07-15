@@ -3,8 +3,7 @@
 
 **Bot To automatically download torrent of searched game on online-fix.me.**
 ##
-for now need the chrome driver to function.
-##
+Need the chrome driver to function.
 Download it from here : https://developer.chrome.com/docs/chromedriver/downloads 
 ##
 Made using Selenium. 
