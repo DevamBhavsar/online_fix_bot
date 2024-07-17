@@ -22,6 +22,8 @@ from discord import Intents, File
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
+import asyncio
+
 
 
 logging.config.dictConfig({
@@ -182,6 +184,11 @@ intents = Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix=["!", "?"], intents=intents, help_command=None)
 
+
+@bot.event
+async def on_command(ctx):
+    log_command(ctx)
+
 @bot.event
 async def on_ready():
     LOGGER.info(f"{bot.user} is running")
@@ -211,6 +218,14 @@ async def help_command(ctx):
     Use ? instead of ! for private responses.
     """
     await ctx.send(help_message)
+
+def log_command(ctx):
+    LOGGER.info(f"User {ctx.author} (ID: {ctx.author.id}) ran command: {ctx.message.content}")
+
+@bot.command(name="hello")
+async def hello_commnad(ctx):
+    await ctx.send("Hello There")
+    
 
 bot.run(DISCORD_TOKEN)
 
